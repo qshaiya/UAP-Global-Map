@@ -4,420 +4,50 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UAP Global Map</title>
-
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIINfQK0Oo20qD4w+V6Hz5r9J6xkP5n9U7s="
-    crossorigin=""
-  />
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    :root {
-      --bg: #070b18;
-      --panel: rgba(10, 17, 34, 0.92);
-      --panel-soft: rgba(15, 25, 48, 0.82);
-      --text: #e8f1ff;
-      --muted: #9fb1d1;
-      --line: rgba(255, 255, 255, 0.14);
-      --accent: #7dd3fc;
-      --danger: #fb7185;
-      --warning: #fbbf24;
-      --success: #34d399;
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    #map {
-      height: 100%;
-      width: 100%;
-      background: #050816;
-    }
-
-    .app-header {
-      position: absolute;
-      z-index: 900;
-      top: 18px;
-      left: 18px;
-      width: min(420px, calc(100vw - 36px));
-      padding: 18px;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(10, 17, 34, 0.96), rgba(16, 28, 55, 0.88));
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
-      backdrop-filter: blur(14px);
-    }
-
-    .app-header h1 {
-      margin: 0 0 8px;
-      font-size: 24px;
-      letter-spacing: -0.03em;
-    }
-
-    .app-header p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.45;
-      font-size: 13px;
-    }
-
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 14px;
-    }
-
-    .chip {
-      border: 1px solid var(--line);
-      background: var(--panel-soft);
-      color: var(--text);
-      border-radius: 999px;
-      padding: 7px 10px;
-      font-size: 12px;
-      cursor: pointer;
-      user-select: none;
-      transition: 0.16s ease;
-    }
-
-    .chip:hover,
-    .chip.active {
-      border-color: rgba(125, 211, 252, 0.75);
-      background: rgba(14, 116, 144, 0.45);
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 14px;
-    }
-
-    .stat {
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.045);
-    }
-
-    .stat strong {
-      display: block;
-      font-size: 19px;
-      line-height: 1.1;
-    }
-
-    .stat span {
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .legend {
-      position: absolute;
-      z-index: 900;
-      right: 18px;
-      bottom: 26px;
-      width: min(290px, calc(100vw - 36px));
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--panel);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
-      backdrop-filter: blur(14px);
-    }
-
-    .legend h2 {
-      margin: 0 0 10px;
-      font-size: 14px;
-      letter-spacing: -0.01em;
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      margin: 7px 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.75);
-      box-shadow: 0 0 16px currentColor;
-      flex: 0 0 auto;
-    }
-
-    .popup-card {
-      min-width: 260px;
-      max-width: 340px;
-      color: #172033;
-    }
-
-    .popup-card h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
-      line-height: 1.25;
-    }
-
-    .popup-meta {
-      display: grid;
-      gap: 5px;
-      margin: 8px 0 10px;
-      font-size: 12px;
-    }
-
-    .popup-meta b { color: #0f172a; }
-
-    .popup-card p {
-      margin: 0 0 10px;
-      line-height: 1.45;
-      font-size: 12px;
-    }
-
-    .popup-card a {
-      color: #0369a1;
-      font-weight: 700;
-      text-decoration: none;
-    }
-
-    .uap-marker {
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.95);
-      box-shadow: 0 0 0 4px rgba(255,255,255,0.14), 0 0 24px currentColor;
-    }
-
-    .uap-marker::after {
-      content: "";
-      width: 42%;
-      height: 42%;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.85);
-    }
-
-    .leaflet-control-attribution {
-      background: rgba(255, 255, 255, 0.75) !important;
-    }
-
-    @media (max-width: 720px) {
-      .app-header {
-        top: 10px;
-        left: 10px;
-        width: calc(100vw - 20px);
-        padding: 14px;
-      }
-
-      .app-header h1 { font-size: 20px; }
-
-      .legend {
-        right: 10px;
-        bottom: 18px;
-        width: calc(100vw - 20px);
-      }
-    }
+    :root{--bg:#050816;--panel:rgba(10,17,34,.94);--panel2:rgba(15,25,48,.86);--text:#e8f1ff;--muted:#9fb1d1;--line:rgba(255,255,255,.14)}
+    *{box-sizing:border-box} html,body,#map{height:100%;margin:0} body{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif} #map{width:100%;background:#050816}
+    .app-header{position:absolute;z-index:900;top:18px;left:18px;width:min(430px,calc(100vw - 36px));padding:18px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(135deg,rgba(10,17,34,.97),rgba(16,28,55,.9));box-shadow:0 20px 60px rgba(0,0,0,.38);backdrop-filter:blur(14px)}
+    h1{margin:0 0 8px;font-size:24px;letter-spacing:-.03em}.app-header p{margin:0;color:var(--muted);line-height:1.45;font-size:13px}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.chip{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:999px;padding:7px 10px;font-size:12px;cursor:pointer}.chip.active,.chip:hover{border-color:rgba(125,211,252,.75);background:rgba(14,116,144,.45)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.stat{padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.045)}.stat strong{display:block;font-size:19px}.stat span{color:var(--muted);font-size:11px}
+    .legend{position:absolute;z-index:900;right:18px;bottom:26px;width:min(290px,calc(100vw - 36px));padding:14px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 20px 60px rgba(0,0,0,.38);backdrop-filter:blur(14px)}.legend h2{margin:0 0 10px;font-size:14px}.legend-row{display:flex;align-items:center;gap:9px;margin:7px 0;color:var(--muted);font-size:12px}.dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.75);box-shadow:0 0 16px currentColor;flex:0 0 auto}
+    .uap-marker{display:grid;place-items:center;border-radius:50%;border:2px solid rgba(255,255,255,.95);box-shadow:0 0 0 4px rgba(255,255,255,.14),0 0 24px currentColor}.uap-marker:after{content:"";width:42%;height:42%;border-radius:50%;background:rgba(255,255,255,.85)}.popup-card{min-width:260px;max-width:340px;color:#172033}.popup-card h3{margin:0 0 8px;font-size:16px;line-height:1.25}.popup-meta{display:grid;gap:5px;margin:8px 0 10px;font-size:12px}.popup-card p{margin:0 0 10px;line-height:1.45;font-size:12px}.popup-card a{color:#0369a1;font-weight:700;text-decoration:none}.leaflet-container{background:#050816}.leaflet-control-attribution{background:rgba(255,255,255,.72)!important}
+    @media(max-width:720px){.app-header{top:10px;left:10px;width:calc(100vw - 20px);padding:14px}h1{font-size:20px}.legend{right:10px;bottom:18px;width:calc(100vw - 20px)}}
   </style>
 </head>
 <body>
   <div id="map"></div>
-
-  <section class="app-header" aria-label="UAP map controls">
+  <section class="app-header">
     <h1>UAP Global Map</h1>
-    <p>Every report in <code>data/uap_reports.json</code> with latitude and longitude appears automatically as a pin. Add new sightings to the JSON file and refresh this page.</p>
-
+    <p>Every report in <code>data/uap_reports.json</code> with real latitude and longitude appears automatically as a pin. Records without coordinates stay in the dataset but are not pinned.</p>
     <div class="toolbar" id="filters">
-      <button class="chip active" data-filter="all">All pins</button>
-      <button class="chip" data-filter="government_disclosure_news_report">Official / news</button>
-      <button class="chip" data-filter="reddit">Reddit</button>
-      <button class="chip" data-filter="military">Military</button>
-      <button class="chip" data-filter="low">Low confidence</button>
-      <button class="chip" data-filter="medium">Medium confidence</button>
-      <button class="chip" data-filter="high">High confidence</button>
+      <button class="chip active" data-filter="all">All pins</button><button class="chip" data-filter="government">Official / news</button><button class="chip" data-filter="reddit">Reddit</button><button class="chip" data-filter="military">Military</button><button class="chip" data-filter="low">Low confidence</button><button class="chip" data-filter="medium">Medium confidence</button><button class="chip" data-filter="high">High confidence</button>
     </div>
-
-    <div class="stats">
-      <div class="stat"><strong id="totalReports">0</strong><span>Total records</span></div>
-      <div class="stat"><strong id="pinnedReports">0</strong><span>Pinned</span></div>
-      <div class="stat"><strong id="unmappedReports">0</strong><span>Need coords</span></div>
-    </div>
+    <div class="stats"><div class="stat"><strong id="totalReports">0</strong><span>Total records</span></div><div class="stat"><strong id="pinnedReports">0</strong><span>Earth pins</span></div><div class="stat"><strong id="unmappedReports">0</strong><span>Need coords</span></div></div>
   </section>
-
-  <section class="legend" aria-label="Map legend">
-    <h2>Confidence / reliability</h2>
-    <div class="legend-row"><span class="dot" style="color:#94a3b8;background:#94a3b8"></span> Unknown / unverified</div>
-    <div class="legend-row"><span class="dot" style="color:#60a5fa;background:#60a5fa"></span> Low confidence</div>
-    <div class="legend-row"><span class="dot" style="color:#fbbf24;background:#fbbf24"></span> Medium confidence</div>
-    <div class="legend-row"><span class="dot" style="color:#fb923c;background:#fb923c"></span> Medium-high confidence</div>
-    <div class="legend-row"><span class="dot" style="color:#ef4444;background:#ef4444"></span> High / official confirmed</div>
-  </section>
-
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-
+  <section class="legend"><h2>Confidence / reliability</h2><div class="legend-row"><span class="dot" style="color:#94a3b8;background:#94a3b8"></span>Unknown / unverified</div><div class="legend-row"><span class="dot" style="color:#60a5fa;background:#60a5fa"></span>Low confidence</div><div class="legend-row"><span class="dot" style="color:#fbbf24;background:#fbbf24"></span>Medium confidence</div><div class="legend-row"><span class="dot" style="color:#fb923c;background:#fb923c"></span>Medium-high confidence</div><div class="legend-row"><span class="dot" style="color:#ef4444;background:#ef4444"></span>High / official confirmed</div></section>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const DATA_URL = './data/uap_reports.json';
-
-    const map = L.map('map', {
-      worldCopyJump: true,
-      minZoom: 2,
-      zoomControl: true
-    }).setView([22, 10], 2.35);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const markerLayer = L.layerGroup().addTo(map);
-    let allReports = [];
-    let currentFilter = 'all';
-
-    function normalizeText(value) {
-      return String(value || '').toLowerCase().trim();
-    }
-
-    function getLat(report) {
-      return report.latitude ?? report.lat ?? report.coordinates?.lat ?? null;
-    }
-
-    function getLon(report) {
-      return report.longitude ?? report.lon ?? report.lng ?? report.coordinates?.lon ?? report.coordinates?.lng ?? null;
-    }
-
-    function isPinned(report) {
-      const lat = Number(getLat(report));
-      const lon = Number(getLon(report));
-      return Number.isFinite(lat) && Number.isFinite(lon);
-    }
-
-    function confidenceColor(confidence) {
-      const c = normalizeText(confidence);
-      if (c.includes('high') && !c.includes('medium')) return '#ef4444';
-      if (c.includes('medium-high') || c.includes('medium high')) return '#fb923c';
-      if (c.includes('medium')) return '#fbbf24';
-      if (c.includes('low')) return '#60a5fa';
-      return '#94a3b8';
-    }
-
-    function confidenceSize(confidence) {
-      const c = normalizeText(confidence);
-      if (c.includes('high') && !c.includes('medium')) return 21;
-      if (c.includes('medium-high') || c.includes('medium high')) return 19;
-      if (c.includes('medium')) return 17;
-      return 15;
-    }
-
-    function sourceMatches(report, filter) {
-      const source = normalizeText(report.source_type || report.source_category || report.type);
-      const title = normalizeText(report.title);
-      const notes = normalizeText(report.notes + ' ' + report.summary);
-      const confidence = normalizeText(report.confidence);
-
-      if (filter === 'all') return true;
-      if (filter === 'military') return source.includes('military') || title.includes('military') || notes.includes('military');
-      if (['low', 'medium', 'high'].includes(filter)) return confidence.includes(filter);
-      return source.includes(filter);
-    }
-
-    function markerIcon(report) {
-      const color = confidenceColor(report.confidence);
-      const size = confidenceSize(report.confidence);
-      return L.divIcon({
-        className: '',
-        html: `<div class="uap-marker" style="width:${size}px;height:${size}px;color:${color};background:${color}"></div>`,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
-        popupAnchor: [0, -size / 2]
-      });
-    }
-
-    function popupContent(report) {
-      const safe = (value, fallback = 'Unknown') => value === null || value === undefined || value === '' ? fallback : String(value);
-      const sourceUrl = safe(report.source_url, '');
-      const link = sourceUrl ? `<a href="${sourceUrl}" target="_blank" rel="noopener noreferrer">Open source</a>` : 'No source URL';
-
-      return `
-        <article class="popup-card">
-          <h3>${safe(report.title || report.id, 'Untitled UAP report')}</h3>
-          <div class="popup-meta">
-            <div><b>Date:</b> ${safe(report.event_date || report.date)}</div>
-            <div><b>Location:</b> ${safe(report.location_name || report.location)}</div>
-            <div><b>Confidence:</b> ${safe(report.confidence)}</div>
-            <div><b>Pin status:</b> ${safe(report.pin_status || report.pin_precision)}</div>
-            <div><b>Source type:</b> ${safe(report.source_type || report.source_category || report.type)}</div>
-          </div>
-          <p>${safe(report.summary || report.notes, 'No summary yet.')}</p>
-          ${link}
-        </article>
-      `;
-    }
-
-    function render() {
-      markerLayer.clearLayers();
-      const pinned = allReports.filter(isPinned).filter(report => sourceMatches(report, currentFilter));
-
-      pinned.forEach(report => {
-        const lat = Number(getLat(report));
-        const lon = Number(getLon(report));
-        L.marker([lat, lon], { icon: markerIcon(report) })
-          .bindPopup(popupContent(report))
-          .addTo(markerLayer);
-      });
-
-      if (pinned.length > 0) {
-        const bounds = L.latLngBounds(pinned.map(report => [Number(getLat(report)), Number(getLon(report))]));
-        map.fitBounds(bounds.pad(0.25), { maxZoom: 5 });
-      }
-    }
-
-    function updateStats() {
-      const total = allReports.length;
-      const pinned = allReports.filter(isPinned).length;
-      document.getElementById('totalReports').textContent = total;
-      document.getElementById('pinnedReports').textContent = pinned;
-      document.getElementById('unmappedReports').textContent = total - pinned;
-    }
-
-    function setFilter(filter) {
-      currentFilter = filter;
-      document.querySelectorAll('.chip').forEach(button => {
-        button.classList.toggle('active', button.dataset.filter === filter);
-      });
-      render();
-    }
-
-    document.getElementById('filters').addEventListener('click', event => {
-      const button = event.target.closest('[data-filter]');
-      if (button) setFilter(button.dataset.filter);
-    });
-
-    async function loadReports() {
-      try {
-        const response = await fetch(`${DATA_URL}?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`Could not load ${DATA_URL}: ${response.status}`);
-        allReports = await response.json();
-        updateStats();
-        render();
-      } catch (error) {
-        console.error(error);
-        document.querySelector('.app-header p').textContent = 'Could not load UAP data. Check data/uap_reports.json.';
-      }
-    }
-
-    loadReports();
+    const DATA_URL='./data/uap_reports.json';
+    const map=L.map('map',{worldCopyJump:true,minZoom:2,zoomControl:true}).setView([24,10],2.4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+    setTimeout(()=>map.invalidateSize(),250); setTimeout(()=>map.invalidateSize(),1000);
+    const markerLayer=L.layerGroup().addTo(map); let allReports=[]; let currentFilter='all';
+    const norm=v=>String(v??'').toLowerCase().trim();
+    function getLat(r){return r.latitude??r.lat??r.coordinates?.lat??null} function getLon(r){return r.longitude??r.lon??r.lng??r.coordinates?.lon??r.coordinates?.lng??null}
+    function parseCoord(v){ if(v===null||v===undefined||v==='') return null; const n=Number(v); return Number.isFinite(n)?n:null; }
+    function isPinned(r){ const lat=parseCoord(getLat(r)); const lon=parseCoord(getLon(r)); return lat!==null&&lon!==null&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180; }
+    function color(c){c=norm(c); if(c.includes('high')&&!c.includes('medium'))return'#ef4444'; if(c.includes('medium-high')||c.includes('medium high'))return'#fb923c'; if(c.includes('medium'))return'#fbbf24'; if(c.includes('low'))return'#60a5fa'; return'#94a3b8'}
+    function size(c){c=norm(c); if(c.includes('high')&&!c.includes('medium'))return 22; if(c.includes('medium-high')||c.includes('medium high'))return 20; if(c.includes('medium'))return 18; return 16}
+    function matches(r,f){const s=norm(r.source_type||r.source_category||r.type),t=norm(r.title),n=norm((r.notes||'')+' '+(r.summary||'')),c=norm(r.confidence); if(f==='all')return true; if(f==='military')return s.includes('military')||t.includes('military')||n.includes('military'); if(f==='government')return s.includes('government')||s.includes('official')||s.includes('news'); if(['low','medium','high'].includes(f))return c.includes(f); return s.includes(f)}
+    function icon(r){const col=color(r.confidence),sz=size(r.confidence);return L.divIcon({className:'',html:`<div class="uap-marker" style="width:${sz}px;height:${sz}px;color:${col};background:${col}"></div>`,iconSize:[sz,sz],iconAnchor:[sz/2,sz/2],popupAnchor:[0,-sz/2]})}
+    function safe(v,f='Unknown'){return v===null||v===undefined||v===''?f:String(v)}
+    function popup(r){const src=safe(r.source_url,'');return `<article class="popup-card"><h3>${safe(r.title||r.id,'Untitled UAP report')}</h3><div class="popup-meta"><div><b>Date:</b> ${safe(r.event_date||r.date)}</div><div><b>Location:</b> ${safe(r.location_name||r.location)}</div><div><b>Confidence:</b> ${safe(r.confidence)}</div><div><b>Pin:</b> ${safe(r.pin_status||r.pin_precision)}</div><div><b>Source:</b> ${safe(r.source_type||r.source_category||r.type)}</div></div><p>${safe(r.summary||r.notes,'No summary yet.')}</p>${src?`<a href="${src}" target="_blank" rel="noopener noreferrer">Open source</a>`:'No source URL'}</article>`}
+    function render(){markerLayer.clearLayers(); const pinned=allReports.filter(isPinned).filter(r=>matches(r,currentFilter)); pinned.forEach(r=>L.marker([parseCoord(getLat(r)),parseCoord(getLon(r))],{icon:icon(r)}).bindPopup(popup(r)).addTo(markerLayer)); if(pinned.length){map.fitBounds(L.latLngBounds(pinned.map(r=>[parseCoord(getLat(r)),parseCoord(getLon(r))])).pad(.25),{maxZoom:5});}}
+    function stats(){const total=allReports.length,pinned=allReports.filter(isPinned).length; document.getElementById('totalReports').textContent=total; document.getElementById('pinnedReports').textContent=pinned; document.getElementById('unmappedReports').textContent=total-pinned;}
+    document.getElementById('filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]'); if(!b)return; currentFilter=b.dataset.filter; document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('active',x===b)); render();});
+    async function load(){try{const res=await fetch(`${DATA_URL}?v=${Date.now()}`); if(!res.ok)throw new Error(res.status); allReports=await res.json(); stats(); render();}catch(e){console.error(e); document.querySelector('.app-header p').textContent='Could not load data/uap_reports.json. Please check JSON syntax.';}}
+    load();
   </script>
 </body>
 </html>
