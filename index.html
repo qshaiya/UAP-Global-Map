@@ -19,7 +19,7 @@
   <div id="map"></div>
   <section class="app-header">
     <h1>UAP Global Map</h1>
-    <p>Every report in <code>data/uap_reports.json</code> with real latitude and longitude appears automatically as a pin. Records without coordinates stay in the dataset but are not pinned.</p>
+    <p>Every report in <code>data/uap_reports.json</code> with <code>pin_status="pinned"</code> and real latitude/longitude appears automatically as a pin. Records without coordinates or without pinned status stay in the dataset but are not pinned.</p>
     <div class="toolbar" id="filters">
       <button class="chip active" data-filter="all">All pins</button><button class="chip" data-filter="government">Official / news</button><button class="chip" data-filter="reddit">Reddit</button><button class="chip" data-filter="military">Military</button><button class="chip" data-filter="low">Low confidence</button><button class="chip" data-filter="medium">Medium confidence</button><button class="chip" data-filter="high">High confidence</button>
     </div>
@@ -36,7 +36,7 @@
     const norm=v=>String(v??'').toLowerCase().trim();
     function getLat(r){return r.latitude??r.lat??r.coordinates?.lat??null} function getLon(r){return r.longitude??r.lon??r.lng??r.coordinates?.lon??r.coordinates?.lng??null}
     function parseCoord(v){ if(v===null||v===undefined||v==='') return null; const n=Number(v); return Number.isFinite(n)?n:null; }
-    function isPinned(r){ const lat=parseCoord(getLat(r)); const lon=parseCoord(getLon(r)); return lat!==null&&lon!==null&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180; }
+    function isPinned(r){ const lat=parseCoord(getLat(r)); const lon=parseCoord(getLon(r)); return norm(r.pin_status||r.pin_precision)==='pinned'&&lat!==null&&lon!==null&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180; }
     function color(c){c=norm(c); if(c.includes('high')&&!c.includes('medium'))return'#ef4444'; if(c.includes('medium-high')||c.includes('medium high'))return'#fb923c'; if(c.includes('medium'))return'#fbbf24'; if(c.includes('low'))return'#60a5fa'; return'#94a3b8'}
     function size(c){c=norm(c); if(c.includes('high')&&!c.includes('medium'))return 22; if(c.includes('medium-high')||c.includes('medium high'))return 20; if(c.includes('medium'))return 18; return 16}
     function matches(r,f){const s=norm(r.source_type||r.source_category||r.type),t=norm(r.title),n=norm((r.notes||'')+' '+(r.summary||'')),c=norm(r.confidence); if(f==='all')return true; if(f==='military')return s.includes('military')||t.includes('military')||n.includes('military'); if(f==='government')return s.includes('government')||s.includes('official')||s.includes('news'); if(['low','medium','high'].includes(f))return c.includes(f); return s.includes(f)}
