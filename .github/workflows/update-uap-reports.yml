@@ -22,6 +22,12 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Test ingestion safeguards
+        run: python -B -m unittest discover -s tests -v
+
+      - name: Test map review gating
+        run: node tests/test_frontend.js
+
       - name: Run UAP updater
         run: python scripts/update_uap_reports.py
 
