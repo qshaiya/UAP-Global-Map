@@ -1,0 +1,25 @@
+name: UAP data quality
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Test ingestion and scoped repair
+        run: python -B -m unittest discover -s tests -v
+      - name: Test map review gating
+        run: node tests/test_frontend.js
+      - name: Validate dataset
+        run: |
+          python -B -c 'import sys; sys.path.insert(0, "scripts"); from update_uap_reports import load_existing, validate_reports; validate_reports(load_existing())'
